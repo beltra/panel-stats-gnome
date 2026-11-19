@@ -2,7 +2,7 @@ import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-export default class LegionStatsPrefs extends ExtensionPreferences {
+export default class PanelStatsPrefs extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const settings = this.getSettings();
         const page = new Adw.PreferencesPage();
