@@ -5,5 +5,5 @@
   "shell-version": ["45", "46", "47", "48", "49", "50"],
   "url": "https://github.com/beltra/panel-stats-gnome",
   "settings-schema": "org.gnome.shell.extensions.panel-stats",
-  "version-name": "2.1"
+  "version-name": "2.2"
 }
