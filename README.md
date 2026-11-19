@@ -1,6 +1,6 @@
-# Legion Stats
+# Panel Stats
 
-A GNOME Shell extension (GNOME 45–50) that puts one compact item in the top bar (`CPU 12% · 53°`). Hovering it opens a card styled after Lenovo Legion Toolkit's tray tooltip:
+A GNOME Shell extension (GNOME 45–50) that puts one compact item in the top bar (`CPU 12% · 53°`). Hovering it opens a card styled after the tray tooltip of Lenovo Legion Toolkit. It works on any laptop or desktop with the usual Linux sensors:
 
 - Platform profile (ACPI `platform_profile`)
 - CPU: usage, average frequency, package temperature
@@ -15,14 +15,14 @@ The card uses the shell theme (light, dark, high contrast and accent colour). Ro
 
 From a release zip:
 
-    gnome-extensions install --force legion-stats@beltra.github.io.shell-extension.zip
+    gnome-extensions install --force panel-stats@beltra.github.io.shell-extension.zip
 
 From git:
 
-    git clone https://github.com/beltra/legion-stats-gnome
-    cd legion-stats-gnome && make install
+    git clone https://github.com/beltra/panel-stats-gnome
+    cd panel-stats-gnome && make install
 
-Then log out and back in (on Wayland the shell cannot load a new extension in place), and run `gnome-extensions enable legion-stats@beltra.github.io`. `make pack` builds the zip only.
+Then log out and back in (on Wayland the shell cannot load a new extension in place), and run `gnome-extensions enable panel-stats@beltra.github.io`. `make pack` builds the zip only.
 
 Preferences: top bar interval (default 3 s) and which card sections to show.
 
@@ -31,9 +31,9 @@ Preferences: top bar interval (default 3 s) and which card sections to show.
 | Item | Source | Tested |
 |---|---|---|
 | CPU usage | `/proc/stat` | yes |
-| CPU temperature | hwmon `coretemp` "Package id", `k10temp`/`zenpower` "Tdie" or "Tctl", `cpu_thermal` | Intel only |
+| CPU temperature | hwmon `coretemp` "Package id", `k10temp`/`zenpower` "Tdie" or "Tctl", `cpu_thermal` | Intel only (Raptor Lake, Arrow Lake) |
 | CPU frequency | `/proc/cpuinfo` (x86), otherwise cpufreq policies | Intel only |
-| Fans | every `fan*_input` outside GPU drivers (lenovo_wmi_other, thinkpad, dell_smm, asus, …) | Lenovo only |
+| Fans | every `fan*_input` outside GPU drivers (lenovo_wmi_other, thinkpad, dell_smm, asus, …); where `alienware_wmi`, `dell_ddv` and `dell_smm` report the same fans, only the first is used | Lenovo, Alienware |
 | NVIDIA dGPU | `nvidia-smi` | yes |
 | AMD / Intel dGPU | `gpu_busy_percent`, `mem_info_vram_*`, and the device's hwmon | no |
 | Battery | every system battery in `/sys/class/power_supply` | single battery only |

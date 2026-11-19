@@ -12,6 +12,10 @@ Gio._promisify(Gio.DBusConnection.prototype, 'call');
 
 const CARD_INTERVAL_S = 2;
 const GPU_HWMON = ['amdgpu', 'radeon', 'nouveau', 'i915', 'xe'];
+// Drivers that read the same embedded-controller fans through different
+// firmware interfaces. Only the first one present in each list is used, so a
+// fan is never counted twice (Dell and Alienware laptops load all three).
+const FAN_ALIASES = [['alienware_wmi', 'dell_ddv', 'dell_smm']];
 const NV_FIELDS = 'utilization.gpu,memory.used,memory.total,clocks.sm,temperature.gpu,power.draw,pstate';
 
 const dec = new TextDecoder();
@@ -82,14 +86,16 @@ class Handle {
 function findSensors() {
     const s = {cpuTemp: null, fans: [], nvme: []};
     let best = 9;
+    const fansBy = new Map();
     for (const h of ls('/sys/class/hwmon')) {
         const dir = `/sys/class/hwmon/${h}`;
         const name = readSync(`${dir}/name`);
         const files = ls(dir);
         if (name === 'nvme' && files.includes('temp1_input'))
             s.nvme.push(`${dir}/temp1_input`);
-        if (!GPU_HWMON.includes(name))
-            s.fans.push(...files.filter(f => /^fan\d+_input$/.test(f)).map(f => `${dir}/${f}`));
+        const fans = files.filter(f => /^fan\d+_input$/.test(f)).map(f => `${dir}/${f}`);
+        if (fans.length && !GPU_HWMON.includes(name))
+            fansBy.set(name, [...fansBy.get(name) ?? [], ...fans]);
         for (const f of files.filter(x => /^temp\d+_label$/.test(x))) {
             const label = readSync(`${dir}/${f}`) ?? '';
             const rank = name === 'coretemp' && label.startsWith('Package id') ? 0
@@ -103,6 +109,11 @@ function findSensors() {
         if (best === 9 && name === 'cpu_thermal' && files.includes('temp1_input'))
             s.cpuTemp = `${dir}/temp1_input`;
     }
+    for (const group of FAN_ALIASES) {
+        for (const name of group.filter(n => fansBy.has(n)).slice(1))
+            fansBy.delete(name);
+    }
+    s.fans = [...fansBy.values()].flat();
     s.batteries = ls('/sys/class/power_supply').map(b => `/sys/class/power_supply/${b}`)
         .filter(p => readSync(`${p}/type`) === 'Battery' && readSync(`${p}/scope`) !== 'Device');
     s.policies = ls('/sys/devices/system/cpu/cpufreq').filter(p => p.startsWith('policy'))
@@ -132,7 +143,7 @@ function productName() {
     return /^(|to be filled.*|system product name|default string|not applicable|none|o\.?e\.?m\.?)$/i.test(name) ? null : name;
 }
 
-export default class LegionStats extends Extension {
+export default class PanelStats extends Extension {
     enable() {
         this._settings = this.getSettings();
         this._cancel = new Gio.Cancellable();
